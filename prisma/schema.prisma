@@ -1,0 +1,406 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StaffType {
+  DOCENTE
+  ADMINISTRATIVO
+  PSICOLOGIA
+  APOYO
+}
+
+enum EnrollmentStatus {
+  ACTIVO
+  RETIRADO
+  EGRESADO
+}
+
+enum AttendanceStatus {
+  PRESENTE
+  AUSENTE
+  TARDE
+}
+
+enum AlertSeverity {
+  VERDE
+  AMARILLO
+  ROJO
+}
+
+enum AlertStatus {
+  ABIERTA
+  EN_SEGUIMIENTO
+  CERRADA
+}
+
+enum DocumentCategory {
+  CIRCULAR
+  ACTA
+  FORMATO
+  MANUAL
+  OTRO
+}
+
+enum GradeCode {
+  PREPRIMARIO
+  KINDER
+  PRIMERO
+  SEGUNDO
+  TERCERO
+}
+
+enum SectionLetter {
+  A
+  B
+  C
+  D
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  passwordHash  String?
+  isActive      Boolean   @default(true)
+
+  staffId       String?   @unique
+  staff         Staff?    @relation(fields: [staffId], references: [id])
+
+  accounts      Account[]
+  sessions      Session[]
+  roles         UserRole[]
+  uploadedDocuments Document[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+  documents   DocumentRole[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+
+  roles       RolePermission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Staff {
+  id         String    @id @default(cuid())
+  firstName  String
+  lastName   String
+  type       StaffType
+  phone      String?
+  email      String?   @unique
+  isActive   Boolean   @default(true)
+  notes      String?
+
+  user       User?
+  assignments TeacherAssignment[]
+  alertsAssigned Alert[] @relation("AlertAssignedStaff")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([type])
+  @@index([lastName, firstName])
+}
+
+model SchoolYear {
+  id        String   @id @default(cuid())
+  label     String   @unique // e.g. 2025-2026
+  startsAt  DateTime
+  endsAt    DateTime
+  isActive  Boolean  @default(false)
+
+  enrollments Enrollment[]
+  assignments TeacherAssignment[]
+  metrics     MetricSnapshot[]
+  meetings    Meeting[]
+  risks       StudentRiskSnapshot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Grade {
+  id        String    @id @default(cuid())
+  code      GradeCode @unique
+  name      String
+  order     Int
+
+  sections  Section[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Section {
+  id        String        @id @default(cuid())
+  gradeId   String
+  letter    SectionLetter
+  name      String
+
+  grade       Grade @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+  enrollments Enrollment[]
+  assignments TeacherAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([gradeId, letter])
+  @@index([gradeId, letter])
+}
+
+model TeacherAssignment {
+  id          String @id @default(cuid())
+  staffId     String
+  sectionId   String
+  schoolYearId String
+
+  staff      Staff      @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  section    Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, sectionId, schoolYearId])
+  @@index([sectionId, schoolYearId])
+}
+
+model Student {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  birthDate    DateTime?
+  gender       String?
+  address      String?
+
+  guardianName  String?
+  guardianPhone String?
+  guardianEmail String?
+
+  enrollments Enrollment[]
+  alerts      Alert[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model Enrollment {
+  id          String           @id @default(cuid())
+  studentId   String
+  sectionId   String
+  schoolYearId String
+  status      EnrollmentStatus @default(ACTIVO)
+  enrolledAt  DateTime         @default(now())
+
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section   Section   @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Restrict)
+
+  attendance AttendanceRecord[]
+  alerts     Alert[]
+  risks      StudentRiskSnapshot[]
+
+  @@unique([studentId, sectionId, schoolYearId])
+  @@index([sectionId, schoolYearId])
+}
+
+model AttendanceRecord {
+  id           String           @id @default(cuid())
+  enrollmentId String
+  date         DateTime
+  status       AttendanceStatus
+  reason       String?
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([enrollmentId, date])
+  @@index([date])
+}
+
+model StudentRiskSnapshot {
+  id           String        @id @default(cuid())
+  enrollmentId String
+  schoolYearId String
+  weekStart    DateTime
+  severity     AlertSeverity
+  absences     Int
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, weekStart])
+  @@index([schoolYearId, weekStart, severity])
+}
+
+model Alert {
+  id             String       @id @default(cuid())
+  severity       AlertSeverity
+  status         AlertStatus  @default(ABIERTA)
+  title          String
+  details        String?
+
+  studentId      String?
+  enrollmentId   String?
+  assignedStaffId String?
+
+  student       Student?    @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  enrollment    Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  assignedStaff Staff?      @relation("AlertAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([severity, status])
+  @@index([assignedStaffId])
+}
+
+model MetricSnapshot {
+  id           String   @id @default(cuid())
+  schoolYearId String
+  month        Int?     // 1-12, null = anual
+  promotionRate Float?
+  dropoutRate   Float?
+  repetitionRate Float?
+  notes        String?
+
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolYearId, month])
+}
+
+model Document {
+  id          String           @id @default(cuid())
+  title       String
+  category    DocumentCategory @default(OTRO)
+  description String?
+  url         String
+  uploadedByUserId String?
+
+  uploadedBy User? @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  roles      DocumentRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model DocumentRole {
+  id         String @id @default(cuid())
+  documentId String
+  roleId     String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  role     Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, roleId])
+}
+
+model Meeting {
+  id           String   @id @default(cuid())
+  schoolYearId String
+  title        String
+  startsAt     DateTime
+  endsAt       DateTime?
+  location     String?
+  agenda       String?
+  minutesUrl   String?
+
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startsAt])
+}
+
