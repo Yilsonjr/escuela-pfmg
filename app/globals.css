@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
-@plugin "tailwindcss-animate";
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --brand-blue: #092e66; /* Azul profundo del logo */
-  --brand-blue-light: #1652a6; /* Azul más claro */
-  --brand-gold: #f5a623; /* Naranja/Dorado del logo */
+  --brand-blue: #092e66;
+  --brand-blue-light: #1652a6;
+  --brand-navy: #060f24;
+  --brand-gold: #f5a623;
   --brand-gold-light: #fcd34d;
-  --brand-sky: #e0f2fe; /* Celeste claro para fondos suaves */
+  --brand-sky: #e0f2fe;
+  --brand-cream: #faf7f2;
   --muted-foreground: #52525b;
 }
 
@@ -20,9 +20,11 @@
   --color-foreground: var(--foreground);
   --color-brand-blue: var(--brand-blue);
   --color-brand-blue-light: var(--brand-blue-light);
+  --color-brand-navy: var(--brand-navy);
   --color-brand-gold: var(--brand-gold);
   --color-brand-gold-light: var(--brand-gold-light);
   --color-brand-sky: var(--brand-sky);
+  --color-brand-cream: var(--brand-cream);
   --color-muted-foreground: var(--muted-foreground);
   
   --animate-fade-in: fade-in 0.8s ease-out forwards;
@@ -57,4 +59,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.hero-pattern {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.clip-diagonal {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
 }
