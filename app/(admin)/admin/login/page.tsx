@@ -3,10 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { School } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { BookOpen, ShieldCheck, Loader2 } from "lucide-react";
 
 export default function AdminLoginPage() {
   const searchParams = useSearchParams();
@@ -35,59 +32,84 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-0px)] bg-gradient-to-b from-white to-brand-blue/5">
-      <div className="mx-auto flex w-full max-w-md flex-col px-6 py-16">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-blue text-white">
-            <School className="h-5 w-5" />
+    <div className="flex min-h-screen items-center justify-center bg-brand-sky/30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] px-4 sm:px-6">
+      <div className="relative w-full max-w-md animate-fade-in">
+        {/* Decoraciones de fondo */}
+        <div className="absolute -left-4 -top-4 h-24 w-24 animate-pulse-slow rounded-full bg-brand-gold/20 blur-2xl"></div>
+        <div className="absolute -bottom-4 -right-4 h-32 w-32 animate-pulse-slow rounded-full bg-brand-blue/20 blur-2xl" style={{ animationDelay: "1s" }}></div>
+        
+        {/* Tarjeta de Login */}
+        <div className="relative overflow-hidden rounded-3xl bg-white/90 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl border border-white">
+          <div className="h-2 w-full bg-gradient-to-r from-brand-blue to-brand-gold"></div>
+          
+          <div className="p-8 sm:p-10">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue-light to-brand-blue text-white shadow-lg shadow-brand-blue/30 mb-6">
+                <BookOpen className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-brand-blue tracking-tight">Acceso Institucional</h2>
+              <p className="mt-2 text-sm text-muted-foreground font-medium">
+                Escuela Primaria Prof. Felipe Montes Gómez
+              </p>
+            </div>
+
+            <form onSubmit={onSubmit} className="mt-10 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-brand-blue/80">Correo Electrónico</label>
+                <div className="relative">
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    placeholder="usuario@escuela.local"
+                    autoComplete="username"
+                    required
+                    className="w-full rounded-xl border-2 border-brand-sky bg-white/50 px-4 py-3.5 text-sm transition-all focus:border-brand-gold focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-gold/10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-brand-blue/80">Contraseña</label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                  className="w-full rounded-xl border-2 border-brand-sky bg-white/50 px-4 py-3.5 text-sm transition-all focus:border-brand-gold focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-gold/10"
+                />
+              </div>
+
+              {error && (
+                <div className="animate-fade-in rounded-xl border border-red-500/20 bg-red-50 p-4 text-sm font-medium text-red-600 flex items-start gap-3">
+                  <ShieldCheck className="h-5 w-5 text-red-500 shrink-0" />
+                  <p>{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-4 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-blue-light hover:shadow-brand-blue/30 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin text-brand-gold" />
+                    Verificando credenciales...
+                  </>
+                ) : (
+                  "Iniciar Sesión"
+                )}
+              </button>
+            </form>
           </div>
-          <div className="leading-tight">
-            <div className="text-sm font-medium text-muted-foreground">Acceso privado</div>
-            <div className="text-lg font-semibold">Sistema Administrativo</div>
+          
+          <div className="bg-brand-sky/20 px-8 py-6 text-center text-xs font-medium text-muted-foreground border-t border-brand-sky/50">
+            ¿Problemas para acceder? Contacta a la Dirección.
           </div>
         </div>
-
-        <form
-          onSubmit={onSubmit}
-          className="mt-8 rounded-2xl border border-black/10 bg-white p-6 shadow-sm"
-        >
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              placeholder="usuario@escuela.local"
-              autoComplete="username"
-              required
-            />
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <label className="text-sm font-medium">Contraseña</label>
-            <Input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          {error ? (
-            <div className="mt-4 rounded-xl border border-red-600/20 bg-red-600/10 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          ) : null}
-
-          <Button className="mt-6 w-full" type="submit" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
-          </Button>
-
-          <div className="mt-4 text-xs text-muted-foreground">
-            Si eres personal del centro y no tienes acceso, solicita tu cuenta a Dirección.
-          </div>
-        </form>
       </div>
     </div>
   );
