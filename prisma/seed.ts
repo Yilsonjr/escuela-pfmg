@@ -131,14 +131,17 @@ async function main() {
     }
   }
 
+  // Email de la directora — puede venir de env o usar el default
+  const directorEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@escuela.local";
+
   const directorStaff = await prisma.staff.upsert({
-    where: { email: "direccion@escuela.local" },
+    where: { email: directorEmail },
     update: { firstName: "Vianney", lastName: "Guzmán", type: StaffType.ADMINISTRATIVO },
     create: {
       firstName: "Vianney",
       lastName: "Guzmán",
       type: StaffType.ADMINISTRATIVO,
-      email: "direccion@escuela.local",
+      email: directorEmail,
       notes: "Dirección del centro",
     },
   });
@@ -198,13 +201,14 @@ async function main() {
 
   // ── App Modules ────────────────────────────────────
   const moduleSeeds = [
-    { key: "personal", name: "Personal", icon: "Users", href: "/admin/personal", order: 1 },
-    { key: "alumnado", name: "Alumnado", icon: "ClipboardList", href: "/admin/alumnado", order: 2 },
-    { key: "asistencia", name: "Asistencia", icon: "CalendarDays", href: "/admin/asistencia", order: 3 },
-    { key: "alertas", name: "Alertas", icon: "Bell", href: "/admin/alertas", order: 4 },
-    { key: "documentos", name: "Documentos", icon: "FileText", href: "/admin/documentos", order: 5 },
-    { key: "metricas", name: "Métricas", icon: "Gauge", href: "/admin/metricas", order: 6 },
-    { key: "apmae", name: "APMAE", icon: "Users", href: "/admin/apmae/calendario", order: 7 },
+    { key: "personal",  name: "Personal",   icon: "Users",        href: "/admin/personal",          order: 1 },
+    { key: "alumnado",  name: "Alumnado",   icon: "ClipboardList",href: "/admin/alumnado",           order: 2 },
+    { key: "asistencia",name: "Asistencia", icon: "CalendarDays", href: "/admin/asistencia",         order: 3 },
+    { key: "alertas",   name: "Alertas",    icon: "Bell",         href: "/admin/alertas",            order: 4 },
+    { key: "documentos",name: "Documentos", icon: "FileText",     href: "/admin/documentos",         order: 5 },
+    { key: "metricas",  name: "Métricas",   icon: "Gauge",        href: "/admin/metricas",           order: 6 },
+    { key: "apmae",     name: "APMAE",      icon: "Users",        href: "/admin/apmae/calendario",   order: 7 },
+    { key: "usuarios",  name: "Usuarios",   icon: "ShieldCheck",  href: "/admin/usuarios",           order: 8 },
   ];
 
   for (const mod of moduleSeeds) {

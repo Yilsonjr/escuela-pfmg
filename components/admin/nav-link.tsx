@@ -15,6 +15,7 @@ import {
   GraduationCap,
   CalendarCheck,
   UsersRound,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/components/lib/cn";
@@ -32,32 +33,33 @@ const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
   GraduationCap,
   UsersRound,
+  ShieldCheck,
 };
 
-/** Per-module accent color for the active icon */
 const ICON_ACTIVE_COLOR: Record<string, string> = {
-  personal:    "text-violet-600",
-  alumnado:    "text-brand-blue",
-  asistencia:  "text-emerald-600",
-  alertas:     "text-amber-600",
-  documentos:  "text-sky-600",
-  metricas:    "text-rose-600",
-  apmae:       "text-teal-600",
-  dashboard:   "text-brand-blue",
-  configuracion:"text-zinc-600",
+  personal:      "text-violet-600",
+  alumnado:      "text-brand-blue",
+  asistencia:    "text-emerald-600",
+  alertas:       "text-amber-600",
+  documentos:    "text-sky-600",
+  metricas:      "text-rose-600",
+  apmae:         "text-teal-600",
+  usuarios:      "text-brand-blue",
+  dashboard:     "text-brand-blue",
+  configuracion: "text-zinc-600",
 };
 
-/** Per-module icon bg tint for active state */
 const ICON_ACTIVE_BG: Record<string, string> = {
-  personal:    "bg-violet-50",
-  alumnado:    "bg-brand-blue/10",
-  asistencia:  "bg-emerald-50",
-  alertas:     "bg-amber-50",
-  documentos:  "bg-sky-50",
-  metricas:    "bg-rose-50",
-  apmae:       "bg-teal-50",
-  dashboard:   "bg-brand-blue/10",
-  configuracion:"bg-zinc-100",
+  personal:      "bg-violet-50",
+  alumnado:      "bg-brand-blue/10",
+  asistencia:    "bg-emerald-50",
+  alertas:       "bg-amber-50",
+  documentos:    "bg-sky-50",
+  metricas:      "bg-rose-50",
+  apmae:         "bg-teal-50",
+  usuarios:      "bg-brand-blue/10",
+  dashboard:     "bg-brand-blue/10",
+  configuracion: "bg-zinc-100",
 };
 
 function keyFromHref(href: string) {
@@ -99,7 +101,6 @@ export function NavLink({
           : "font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800",
       )}
     >
-      {/* Icon wrapper */}
       <div className={cn(
         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
         isActive ? activeIconBg : "group-hover:bg-zinc-100",
@@ -112,10 +113,7 @@ export function NavLink({
           strokeWidth={isActive ? 2 : 1.5}
         />
       </div>
-
       <span className="flex-1">{label}</span>
-
-      {/* Active indicator */}
       {isActive && (
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-blue" />
       )}

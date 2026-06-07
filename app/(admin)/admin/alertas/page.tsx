@@ -57,7 +57,7 @@ async function generateWeeklyRiskAndAlerts() {
     _count: { _all: true },
   });
   const absByEnrollment = new Map(
-    absences.map((a) => [a.enrollmentId, a._count._all]),
+    absences.map((a: { enrollmentId: string; _count: { _all: number } }) => [a.enrollmentId, a._count._all]),
   );
 
   // Find psicología staff to auto-assign
