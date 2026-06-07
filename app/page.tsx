@@ -14,343 +14,387 @@ import {
   Mail,
   ChevronRight,
   Star,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { siteConfig } from "@/lib/site-config";
+
+/* ─── Data ─────────────────────────────────────────────────── */
 
 const services = [
   {
     icon: GraduationCap,
     title: "Excelencia Académica",
-    desc: "Currículo actualizado con metodologías activas y docentes comprometidos con el aprendizaje continuo.",
-    accent: "gold" as const,
+    desc: "Currículo actualizado por el MINERD con refuerzo personalizado y seguimiento individual del rendimiento de cada estudiante.",
   },
   {
     icon: Brain,
     title: "Apoyo Psicológico",
-    desc: "Equipo de psicólogos para el bienestar emocional y el desarrollo integral de cada estudiante.",
-    accent: "blue" as const,
+    desc: "Psicólogos especializados que atienden a estudiantes y familias en situaciones emocionales y de aprendizaje.",
   },
   {
     icon: Clock,
     title: "Tanda Extendida",
-    desc: "Horario ampliado con actividades extracurriculares y refuerzo académico personalizado.",
-    accent: "gold" as const,
+    desc: "Horario hasta las 5:00 PM con refuerzo académico y actividades extracurriculares.",
   },
   {
     icon: Utensils,
     title: "Comedor Escolar",
-    desc: "Alimentación nutritiva y balanceada para garantizar el rendimiento y la salud de los estudiantes.",
-    accent: "blue" as const,
+    desc: "Menú diseñado por nutricionistas. Tres comidas diarias con valor energético certificado.",
   },
   {
     icon: Users,
     title: "Comunidad APMAE",
-    desc: "Asociación activa de padres que fortalece el vínculo entre familia, escuela y comunidad.",
-    accent: "gold" as const,
+    desc: "Asociación activa de padres con reuniones periódicas y canal directo con la dirección.",
   },
   {
     icon: FileText,
     title: "Gestión Documental",
-    desc: "Acceso rápido a certificaciones, registros académicos y documentos oficiales del estudiante.",
-    accent: "blue" as const,
+    desc: "Solicitud de certificaciones y constancias oficiales de manera ágil y digital en menos de 48 horas.",
   },
-];
-
-const stats = [
-  { value: "2014", label: "Año de Fundación", color: "text-brand-blue" },
-  { value: "+500", label: "Estudiantes Activos", color: "text-brand-gold" },
-  { value: "25+", label: "Docentes Calificados", color: "text-brand-blue" },
-  { value: "100%", label: "Compromiso Docente", color: "text-brand-gold" },
 ];
 
 const pillars = [
   {
     icon: Shield,
     title: "Valores Humanos",
-    desc: "Formamos ciudadanos con ética, respeto y responsabilidad social.",
+    desc: "Ética, respeto y responsabilidad social integrados al currículo desde el primer grado mediante proyectos comunitarios.",
   },
   {
     icon: GraduationCap,
     title: "Calidad Académica",
-    desc: "Metodologías activas y docentes especializados en cada área de aprendizaje.",
+    desc: "Maestros titulados con capacitación trimestral, planificación diferenciada y tecnología educativa.",
   },
   {
     icon: Heart,
     title: "Bienestar Integral",
-    desc: "Atención emocional, física y social para cada estudiante de nuestra comunidad.",
+    desc: "Psicólogos, nutricionistas y orientadores trabajan en equipo para atender la salud emocional y física de cada niño.",
   },
 ];
 
-export default function Home() {
+const testimonials = [
+  {
+    initials: "MR",
+    name: "María Rodríguez",
+    role: "Mamá de estudiante",
+    quote:
+      "Desde que mi hijo entró, su desarrollo académico y emocional ha sido extraordinario. Los maestros se preocupan genuinamente por cada niño. Es una escuela que siente como familia.",
+  },
+  {
+    initials: "JP",
+    name: "Juan Pérez",
+    role: "Papá de estudiante",
+    quote:
+      "La tanda extendida ha sido clave para nosotros. Mi hija llega a casa con las tareas hechas y habiendo comido bien.",
+  },
+  {
+    initials: "CS",
+    name: "Carmen Santos",
+    role: "Mamá de estudiante",
+    quote:
+      "El apoyo psicológico marcó una diferencia real. Mi hijo pasó de tener dificultades a ser uno de los más destacados de su aula.",
+  },
+];
+
+/* ─── Page ──────────────────────────────────────────────────── */
+
+export default async function Home() {
+  let studentCount = 0;
+  let staffCount = 0;
+  try {
+    [studentCount, staffCount] = await Promise.all([
+      prisma.student.count(),
+      prisma.staff.count({ where: { isActive: true } }),
+    ]);
+  } catch {
+    // DB unreachable — use fallback values from siteConfig
+  }
+  const yearsOfHistory = new Date().getFullYear() - siteConfig.foundedYear;
+
   return (
-    <div className="flex min-h-screen flex-col font-sans selection:bg-brand-gold selection:text-brand-navy">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-brand-navy/98 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="group flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-gold/30 bg-brand-gold/10 text-brand-gold transition-all group-hover:bg-brand-gold group-hover:text-brand-navy">
-              <BookOpen className="h-5 w-5" />
+    <div className="flex min-h-screen flex-col bg-white font-sans selection:bg-brand-gold/20 selection:text-brand-blue">
+      {/* ══ NAVBAR ══════════════════════════════════════════════ */}
+      <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link href="/" className="group flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue transition-colors group-hover:bg-brand-blue-light">
+              <BookOpen className="h-4 w-4 text-white" strokeWidth={1.5} />
             </div>
             <div className="leading-none">
-              <p className="text-sm font-bold text-white">Escuela Primaria</p>
-              <p className="mt-0.5 text-xs font-medium text-brand-gold">
-                Prof. Felipe Montes Gómez
+              <p className="text-sm font-semibold text-brand-blue">
+                {siteConfig.shortName}
+              </p>
+              <p className="mt-0.5 text-[11px] text-zinc-400">
+                {siteConfig.subtitle}
               </p>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-7 md:flex">
+          <nav className="hidden items-center gap-8 md:flex">
+            {[
+              { label: "Servicios", href: "#servicios" },
+              { label: "Nosotros", href: "#nosotros" },
+              { label: "Testimonios", href: "#testimonios" },
+              { label: "Contacto", href: "#contacto" },
+            ].map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="rounded text-sm text-zinc-500 transition-colors hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
             <Link
-              href="#servicios"
-              className="text-sm font-medium text-white/50 transition-colors hover:text-white"
+              href="/admin"
+              className="hidden rounded text-sm text-zinc-400 transition-colors hover:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 sm:block"
             >
-              Servicios
-            </Link>
-            <Link
-              href="#nosotros"
-              className="text-sm font-medium text-white/50 transition-colors hover:text-white"
-            >
-              Nosotros
+              Portal docente
             </Link>
             <Link
               href="#contacto"
-              className="text-sm font-medium text-white/50 transition-colors hover:text-white"
+              className="rounded-full bg-brand-blue px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-blue-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
             >
-              Contacto
+              Inscripciones
             </Link>
-            <Link
-              href="/admin"
-              className="group ml-2 flex items-center gap-2 rounded-full bg-brand-gold px-5 py-2.5 text-sm font-bold text-brand-navy shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-gold-light hover:shadow-lg hover:shadow-brand-gold/25"
-            >
-              Acceso Personal
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {/* ── Hero ── */}
-        <section className="relative flex min-h-screen items-center overflow-hidden bg-brand-navy px-6 py-24">
-          {/* Dot pattern */}
-          <div className="hero-pattern absolute inset-0 pointer-events-none" />
+        {/* ══ HERO ════════════════════════════════════════════════ */}
+        <section className="relative overflow-hidden bg-brand-navy px-6 pb-20 pt-16 lg:pb-28 lg:pt-24">
+          <div className="pointer-events-none absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full bg-brand-blue/15 blur-[120px]" />
+          <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/25 to-transparent" />
 
-          {/* Gold top accent line */}
-          <div className="absolute left-0 top-0 h-0.5 w-full bg-gradient-to-r from-brand-gold/90 via-brand-gold/30 to-transparent" />
-
-          {/* Ambient glows */}
-          <div className="pointer-events-none absolute -top-32 right-0 h-[480px] w-[480px] rounded-full bg-brand-blue/30 blur-[120px]" />
-          <div className="pointer-events-none absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-brand-gold/5 blur-[80px]" />
-
-          {/* Decorative large number */}
-          <div className="pointer-events-none absolute right-8 top-1/2 hidden -translate-y-1/2 select-none text-[18rem] font-black leading-none text-white/[0.02] xl:block">
-            PFM
-          </div>
-
-          <div className="relative z-10 mx-auto w-full max-w-7xl">
-            <div className="grid items-center gap-14 lg:grid-cols-[1fr_420px]">
-
-              {/* Left – headline */}
-              <div className="animate-fade-in space-y-8 max-w-2xl">
-                <div className="inline-flex items-center gap-2.5 rounded-full border border-brand-gold/20 bg-brand-gold/8 px-4 py-1.5">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-gold" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-gold">
-                    Educación Integral · Desde 2014
+          <div className="relative z-10 mx-auto max-w-6xl">
+            <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+              {/* Left */}
+              <div className="space-y-7">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-xs font-medium text-white/60">
+                    Inscripciones abiertas {siteConfig.currentSchoolYear}
                   </span>
                 </div>
 
-                <h1 className="text-5xl font-black leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-[4.25rem]">
-                  Donde cada niño
-                  <br />
-                  <span className="italic text-brand-gold">descubre</span> su
-                  <br />
-                  potencial.
+                <h1 className="text-balance font-headline text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl">
+                  Educación de calidad para tu hijo,{" "}
+                  <span className="font-display italic text-brand-gold">
+                    en el corazón de la comunidad.
+                  </span>
                 </h1>
 
-                <p className="max-w-lg text-base leading-relaxed text-white/45 sm:text-lg">
-                  Una escuela que combina educación de calidad, valores humanos
-                  y tecnología para formar a los ciudadanos del mañana.
+                <p className="max-w-lg text-base leading-relaxed text-white/60">
+                  Desde {siteConfig.foundedYear} formamos niños con excelencia académica, valores
+                  sólidos y acompañamiento integral. Más de {studentCount || 500} familias confían
+                  en nosotros.
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <Link
-                    href="/admin"
-                    className="group flex items-center gap-2.5 rounded-full bg-brand-gold px-7 py-3.5 text-sm font-bold text-brand-navy shadow-lg shadow-brand-gold/20 transition-all hover:-translate-y-1 hover:shadow-brand-gold/35 hover:shadow-xl"
-                  >
-                    Portal Administrativo
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="#servicios"
-                    className="rounded-full border border-white/10 bg-white/5 px-7 py-3.5 text-sm font-medium text-white/65 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
+                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-brand-gold px-7 py-3.5 text-sm font-semibold text-brand-navy transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy"
                   >
-                    Ver Servicios
+                    Conocer la escuela
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    href="#contacto"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm text-white/60 transition-[border-color,color] hover:border-white/30 hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy"
+                  >
+                    Contactar
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </Link>
                 </div>
               </div>
 
-              {/* Right – commitment card */}
-              <div className="animate-slide-up relative">
-                <div className="rounded-2xl border border-white/8 bg-white/5 p-6 shadow-2xl shadow-black/30 ring-1 ring-inset ring-white/5 backdrop-blur-sm">
-                  <div className="mb-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
-                        Nuestro Compromiso
-                      </p>
-                      <p className="mt-0.5 text-base font-bold text-white">
-                        4 pilares fundamentales
-                      </p>
-                    </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-gold/20 bg-brand-gold/10">
-                      <Shield className="h-5 w-5 text-brand-gold" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
+              {/* Right — key facts, clean and readable */}
+              <div className="hidden lg:block">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-8 backdrop-blur-sm">
+                  <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-white/40">
+                    Nuestra escuela en números
+                  </p>
+                  <div className="grid grid-cols-2 gap-6">
                     {[
-                      "Desarrollo académico de alto nivel",
-                      "Acompañamiento psicológico continuo",
-                      "Programa de tanda extendida",
-                      "Comedor escolar con nutrición balanceada",
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 transition-colors hover:bg-white/10"
-                      >
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-brand-gold/35 bg-brand-gold/10 text-[10px] font-bold text-brand-gold">
-                          {i + 1}
-                        </span>
-                        <span className="text-sm font-medium text-white/65">
-                          {item}
-                        </span>
+                      { value: studentCount > 0 ? `+${studentCount}` : "+500", label: "Estudiantes activos" },
+                      { value: String(staffCount || 28), label: "Docentes titulados" },
+                      { value: siteConfig.stats.approvalRate, label: "Tasa de aprobación" },
+                      { value: String(yearsOfHistory), label: "Años de historia" },
+                    ].map(({ value, label }) => (
+                      <div key={label}>
+                        <p className="font-headline text-3xl font-bold tabular-nums text-white">
+                          {value}
+                        </p>
+                        <p className="mt-1 text-sm text-white/45">{label}</p>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-brand-gold/20 bg-brand-gold/8 px-4 py-3">
-                    <span className="text-xs font-medium text-brand-gold/80">
-                      Compromiso docente verificado
-                    </span>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <Star
-                          key={n}
-                          className="h-3.5 w-3.5 fill-brand-gold text-brand-gold"
-                        />
-                      ))}
+                  <div className="mt-6 flex items-center gap-3 rounded-xl border border-brand-gold/20 bg-brand-gold/10 px-4 py-3">
+                    <Star
+                      className="h-4 w-4 shrink-0 fill-brand-gold text-brand-gold"
+                      strokeWidth={1.5}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-white/80">
+                        Reconocida por MINERD
+                      </p>
+                      <p className="text-xs text-white/40">
+                        Escuela de excelencia académica · 2023
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Floating badge */}
-                <div className="animate-float absolute -bottom-5 -left-5 rounded-2xl bg-brand-gold px-5 py-3.5 shadow-xl shadow-brand-gold/30">
-                  <p className="text-2xl font-black leading-none text-brand-navy">
-                    +500
-                  </p>
-                  <p className="mt-0.5 text-xs font-semibold text-brand-navy/60">
-                    Estudiantes Activos
-                  </p>
-                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Bottom wave into white */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg
-              viewBox="0 0 1440 56"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-full"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0 56L80 46.7C160 37 320 19 480 14C640 9 800 16 960 25.7C1120 35 1280 46 1360 51.3L1440 56H1360C1280 56 1120 56 960 56C800 56 640 56 480 56C320 56 160 56 80 56H0Z"
-                fill="white"
-              />
-            </svg>
-          </div>
-        </section>
-
-        {/* ── Stats Bar ── */}
-        <section className="bg-white px-6 pb-20 pt-2">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-brand-blue/8 ring-1 ring-brand-blue/8 md:grid-cols-4">
-              {stats.map((stat, i) => (
-                <div
-                  key={i}
-                  className="bg-white px-8 py-8 text-center transition-colors hover:bg-brand-sky/30"
-                >
-                  <div className={`text-4xl font-black ${stat.color}`}>
-                    {stat.value}
-                  </div>
-                  <div className="mt-1.5 text-xs font-medium uppercase tracking-wide text-brand-blue-light/60">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
 
-        {/* ── Services ── */}
-        <section id="servicios" className="bg-brand-cream px-6 py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-14 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="h-px w-8 bg-brand-gold" />
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-brand-gold">
-                    Servicios Estudiantiles
-                  </span>
-                </div>
-                <h2 className="text-4xl font-black leading-tight text-brand-blue sm:text-5xl">
-                  Educación completa
-                  <br />
-                  <span className="italic text-brand-blue-light">
-                    en cada aspecto.
-                  </span>
-                </h2>
-              </div>
-              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground sm:text-right">
-                Brindamos un ecosistema educativo que atiende al estudiante
-                desde múltiples dimensiones.
+        {/* ══ SERVICIOS ═══════════════════════════════════════════ */}
+        <section id="servicios" className="bg-white px-6 py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 max-w-xl">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-brand-blue/50">
+                Servicios estudiantiles
+              </p>
+              <h2 className="text-balance font-headline text-3xl font-bold leading-tight text-brand-blue sm:text-4xl">
+                Todo lo que tu hijo necesita,{" "}
+                <span className="font-display italic text-brand-blue-light">
+                  en un solo lugar.
+                </span>
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-zinc-500">
+                Un ecosistema educativo pensado para el desarrollo integral de
+                cada niño.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map(({ icon: Icon, title, desc, accent }, i) => (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map(({ icon: Icon, title, desc }) => (
                 <div
-                  key={i}
-                  className={`group relative overflow-hidden rounded-2xl border bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg
-                    ${
-                      accent === "gold"
-                        ? "border-brand-gold/10 hover:border-brand-gold/30 hover:shadow-brand-gold/8"
-                        : "border-brand-blue/8 hover:border-brand-blue/20 hover:shadow-brand-blue/6"
-                    }`}
+                  key={title}
+                  className="group rounded-2xl border border-zinc-100 bg-white p-7 transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-100/80"
                 >
-                  <div
-                    className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300
-                      ${
-                        accent === "gold"
-                          ? "bg-brand-gold/10 text-brand-gold group-hover:bg-brand-gold group-hover:text-white group-hover:shadow-md group-hover:shadow-brand-gold/25"
-                          : "bg-brand-blue/8 text-brand-blue group-hover:bg-brand-blue group-hover:text-white group-hover:shadow-md group-hover:shadow-brand-blue/25"
-                      }`}
-                  >
-                    <Icon className="h-5 w-5" />
+                  <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-sky text-brand-blue transition-colors group-hover:bg-brand-blue group-hover:text-white">
+                    <Icon className="h-5 w-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="mb-2 text-base font-bold text-brand-blue">
+                  <h3 className="mb-2 text-base font-semibold text-zinc-800">
                     {title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-zinc-500">
                     {desc}
                   </p>
-                  <div
-                    className={`mt-5 flex items-center gap-1 text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100
-                      ${accent === "gold" ? "text-brand-gold" : "text-brand-blue"}`}
-                  >
-                    <span>Conocer más</span>
-                    <ChevronRight className="h-3 w-3" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ MISIÓN / PILARES ════════════════════════════════════ */}
+        <section id="nosotros" className="bg-brand-cream px-6 py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-14 max-w-2xl">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-brand-blue/50">
+                Nuestra misión
+              </p>
+              <h2 className="text-balance font-headline text-3xl font-bold leading-tight text-brand-blue sm:text-4xl">
+                Formamos niños seguros,{" "}
+                <span className="font-display italic text-brand-blue-light">
+                  capaces y comprometidos
+                </span>{" "}
+                con su entorno.
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-zinc-500">
+                Cada decisión está orientada al desarrollo pleno del niño:
+                académico, emocional y social.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {pillars.map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="rounded-2xl border border-brand-warm-2 bg-white p-8"
+                >
+                  <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
+                    <Icon className="h-5 w-5" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="mb-2 text-lg font-semibold text-zinc-800">
+                    {title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-zinc-500">
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-14 grid grid-cols-2 gap-6 border-t border-brand-warm-2 pt-10 sm:grid-cols-4">
+              {[
+                { value: String(siteConfig.foundedYear), label: "Año de fundación" },
+                { value: studentCount > 0 ? `+${studentCount}` : "+500", label: "Familias activas" },
+                { value: `${staffCount || 25}+`, label: "Docentes certificados" },
+                { value: siteConfig.stats.approvalRate, label: "Tasa de aprobación" },
+              ].map(({ value, label }) => (
+                <div key={label}>
+                  <p className="font-headline text-2xl font-bold tabular-nums text-brand-blue">
+                    {value}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-500">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ TESTIMONIOS ════════════════════════════════════════ */}
+        <section id="testimonios" className="bg-white px-6 py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 max-w-xl">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-brand-blue/50">
+                Testimonios
+              </p>
+              <h2 className="text-balance font-headline text-3xl font-bold leading-tight text-brand-blue sm:text-4xl">
+                Lo que dicen{" "}
+                <span className="font-display italic text-brand-blue-light">
+                  nuestras familias.
+                </span>
+              </h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {testimonials.map(({ initials, name, role, quote }) => (
+                <div
+                  key={name}
+                  className="flex flex-col rounded-2xl border border-zinc-100 bg-white p-7 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-100/80"
+                >
+                  <div className="mb-4 flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className="h-4 w-4 fill-brand-gold text-brand-gold"
+                        strokeWidth={1.5}
+                      />
+                    ))}
+                  </div>
+                  <p className="flex-1 text-sm leading-relaxed text-zinc-600">
+                    &ldquo;{quote}&rdquo;
+                  </p>
+                  <div className="mt-6 flex items-center gap-3 border-t border-zinc-50 pt-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-800">
+                        {name}
+                      </p>
+                      <p className="text-xs text-zinc-400">{role}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -358,154 +402,51 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── About / Mission ── */}
-        <section id="nosotros" className="overflow-hidden bg-white px-6 py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid items-center gap-16 lg:grid-cols-2">
-
-              {/* Visual card */}
-              <div className="relative order-2 lg:order-1">
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-10 shadow-2xl shadow-brand-navy/20">
-                  <div className="hero-pattern absolute inset-0 opacity-70" />
-                  <div className="relative z-10">
-                    <div className="select-none text-[7rem] font-black leading-none text-white/5">
-                      10
-                    </div>
-                    <div className="-mt-6 mb-6">
-                      <p className="text-5xl font-black text-white">Años</p>
-                      <p className="text-lg font-medium text-brand-gold">
-                        formando el futuro
-                      </p>
-                    </div>
-                    <div className="mb-6 h-px bg-white/8" />
-                    <p className="mb-8 text-sm leading-relaxed text-white/45">
-                      Desde 2014, la Escuela Primaria Prof. Felipe Montes
-                      Gómez es un pilar educativo en la comunidad, comprometida
-                      con la formación integral de cada estudiante.
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: "Docentes calificados", value: "25+" },
-                        { label: "Promociones graduadas", value: "10+" },
-                        { label: "Programas activos", value: "6" },
-                        { label: "Años de trayectoria", value: "11" },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="rounded-xl border border-white/8 bg-white/5 p-4"
-                        >
-                          <p className="text-2xl font-black text-brand-gold">
-                            {item.value}
-                          </p>
-                          <p className="mt-1 text-xs text-white/40">
-                            {item.label}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {/* Corner accents */}
-                <div className="absolute -bottom-4 -right-4 h-20 w-20 rounded-2xl border border-brand-gold/20 bg-brand-gold/8" />
-                <div className="absolute -left-4 -top-4 h-14 w-14 rounded-xl border border-brand-blue/10 bg-brand-sky/60" />
-              </div>
-
-              {/* Content */}
-              <div className="order-1 space-y-8 lg:order-2">
-                <div>
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="h-px w-8 bg-brand-gold" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-brand-gold">
-                      Nuestra Misión
-                    </span>
-                  </div>
-                  <h2 className="text-4xl font-black leading-tight text-brand-blue sm:text-5xl">
-                    Educamos con propósito,
-                    <br />
-                    <span className="italic text-brand-blue-light">
-                      crecemos en comunidad.
-                    </span>
-                  </h2>
-                </div>
-
-                <p className="text-base leading-relaxed text-muted-foreground">
-                  Brindar una educación integral, inclusiva y de calidad que
-                  prepare a nuestros estudiantes para los retos del mundo
-                  actual, cultivando valores, habilidades y el máximo
-                  potencial humano de cada niño.
-                </p>
-
-                <div className="space-y-3">
-                  {pillars.map(({ icon: Icon, title, desc }, i) => (
-                    <div
-                      key={i}
-                      className="group flex items-start gap-4 rounded-xl border border-transparent bg-brand-sky/25 p-4 transition-all hover:border-brand-blue/8 hover:bg-brand-sky/50"
-                    >
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-blue/8 text-brand-blue transition-all group-hover:bg-brand-blue group-hover:text-white">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-brand-blue">
-                          {title}
-                        </p>
-                        <p className="mt-0.5 text-sm text-muted-foreground">
-                          {desc}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA ── */}
+        {/* ══ CTA / CONTACTO ══════════════════════════════════════ */}
         <section
           id="contacto"
-          className="relative overflow-hidden bg-brand-navy px-6 py-24"
+          className="bg-brand-blue px-6 py-20 lg:py-28"
         >
-          <div className="hero-pattern absolute inset-0 pointer-events-none" />
-          <div className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/25 to-transparent" />
-          <div className="pointer-events-none absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-brand-gold/6 blur-[80px]" />
-
-          <div className="relative z-10 mx-auto max-w-3xl space-y-8 text-center">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-brand-gold/20 bg-brand-gold/8 px-4 py-2">
-              <span className="text-[11px] font-semibold uppercase tracking-widest text-brand-gold">
-                Portal Institucional
+          <div className="mx-auto max-w-3xl space-y-7 text-center">
+            <h2 className="text-balance font-headline text-3xl font-bold leading-tight text-white sm:text-4xl">
+              Dale a tu hijo la mejor{" "}
+              <span className="font-display italic text-brand-gold">
+                educación de la comunidad.
               </span>
-            </div>
-
-            <h2 className="text-4xl font-black text-white sm:text-5xl">
-              ¿Eres parte de nuestro
-              <br />
-              <span className="italic text-brand-gold">equipo docente?</span>
             </h2>
 
-            <p className="mx-auto max-w-lg text-base text-white/40">
-              Accede al sistema administrativo para gestionar estudiantes,
-              asistencia, documentos y métricas institucionales.
+            <p className="mx-auto max-w-md text-base leading-relaxed text-white/60">
+              Contáctanos para conocer el proceso de inscripción, requisitos y
+              disponibilidad para el nuevo año escolar.
             </p>
 
-            <Link
-              href="/admin"
-              className="group inline-flex items-center gap-3 rounded-full bg-brand-gold px-8 py-4 text-base font-bold text-brand-navy shadow-lg shadow-brand-gold/20 transition-all hover:-translate-y-1 hover:shadow-brand-gold/40 hover:shadow-xl"
-            >
-              Acceder al Portal
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:justify-center">
+              <Link
+                href={`mailto:${siteConfig.email}`}
+                className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-sm font-semibold text-brand-blue transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue"
+              >
+                Iniciar inscripción
+                <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+              </Link>
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-8 py-4 text-sm text-white/70 transition-[border-color,color] hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue"
+              >
+                Portal docente
+              </Link>
+            </div>
 
-            <div className="grid grid-cols-1 gap-3 border-t border-white/8 pt-8 sm:grid-cols-3">
+            <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:justify-center sm:gap-8">
               {[
-                { icon: MapPin, value: "República Dominicana" },
-                { icon: Phone, value: "Llámenos hoy" },
-                { icon: Mail, value: "info@escuela.edu.do" },
-              ].map(({ icon: Icon, value }, i) => (
+                { icon: MapPin, value: siteConfig.location },
+                { icon: Phone, value: siteConfig.phone },
+                { icon: Mail, value: siteConfig.email },
+              ].map(({ icon: Icon, value }) => (
                 <div
-                  key={i}
-                  className="flex items-center justify-center gap-2 text-sm text-white/30 transition-colors hover:text-white/50"
+                  key={value}
+                  className="flex items-center gap-2 text-sm text-white/50"
                 >
-                  <Icon className="h-4 w-4 text-brand-gold/45" />
+                  <Icon className="h-4 w-4 text-white/35" strokeWidth={1.5} />
                   <span>{value}</span>
                 </div>
               ))}
@@ -514,20 +455,107 @@ export default function Home() {
         </section>
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-black/5 bg-white px-6 py-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 md:flex-row">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-blue/8">
-              <BookOpen className="h-3.5 w-3.5 text-brand-blue" />
+      {/* ══ FOOTER ══════════════════════════════════════════════ */}
+      <footer className="border-t border-zinc-100 bg-zinc-50 px-6 pb-8 pt-14">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue">
+                  <BookOpen
+                    className="h-4 w-4 text-white"
+                    strokeWidth={1.5}
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-brand-blue">
+                    {siteConfig.shortName}
+                  </p>
+                  <p className="text-[11px] text-zinc-400">
+                    {siteConfig.subtitle}
+                  </p>
+                </div>
+              </div>
+              <p className="max-w-xs text-sm leading-relaxed text-zinc-500">
+                Formando niños con excelencia académica, valores humanos y
+                bienestar integral desde {siteConfig.foundedYear}.
+              </p>
+              <div className="space-y-2">
+                {[
+                  { icon: MapPin, label: "República Dominicana" },
+                  { icon: Phone, label: "(809) 000-0000" },
+                  { icon: Mail, label: "info@escuela.edu.do" },
+                ].map(({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 text-sm text-zinc-400"
+                  >
+                    <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    {label}
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="text-sm font-semibold text-brand-blue">
-              Escuela Primaria Prof. Felipe Montes Gómez
-            </span>
+
+            <div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Institución
+              </p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Servicios", href: "#servicios" },
+                  { label: "Nuestra misión", href: "#nosotros" },
+                  { label: "Testimonios", href: "#testimonios" },
+                  { label: "Contacto", href: "#contacto" },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <Link
+                      href={href}
+                      className="text-sm text-zinc-500 transition-colors hover:text-brand-blue"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Accesos
+              </p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Portal docente", href: "/admin" },
+                  { label: "Gestión documental", href: "/admin" },
+                  { label: "Proceso de inscripción", href: "#contacto" },
+                  { label: "Horarios y calendario", href: "#contacto" },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <Link
+                      href={href}
+                      className="text-sm text-zinc-500 transition-colors hover:text-brand-blue"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} · Todos los derechos reservados
-          </p>
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-zinc-200 pt-6 text-xs text-zinc-400 sm:flex-row">
+            <p>
+              © {new Date().getFullYear()} {siteConfig.name} · Todos los
+              derechos reservados
+            </p>
+            <Link
+              href="/admin"
+              className="text-zinc-400 transition-colors hover:text-brand-blue"
+            >
+              Portal docente →
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

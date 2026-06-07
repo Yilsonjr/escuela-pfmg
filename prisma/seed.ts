@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
+
 import { StaffType } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
@@ -79,12 +83,13 @@ async function main() {
     },
   });
 
+  // Grados que maneja la escuela actualmente:
+  // Nivel Inicial (Pre-Primario) + Primer Ciclo de Primaria (1ero–3ero)
   const gradeSeeds = [
     { code: "PREPRIMARIO" as const, name: "Pre-primario", order: 1 },
-    { code: "KINDER" as const, name: "Kinder", order: 2 },
-    { code: "PRIMERO" as const, name: "1ero", order: 3 },
-    { code: "SEGUNDO" as const, name: "2do", order: 4 },
-    { code: "TERCERO" as const, name: "3ero", order: 5 },
+    { code: "PRIMERO" as const, name: "1ero", order: 2 },
+    { code: "SEGUNDO" as const, name: "2do", order: 3 },
+    { code: "TERCERO" as const, name: "3ero", order: 4 },
   ];
 
   for (const g of gradeSeeds) {
@@ -190,6 +195,25 @@ async function main() {
     where: { id: schoolYear.id },
     data: { isActive: true },
   });
+
+  // ── App Modules ────────────────────────────────────
+  const moduleSeeds = [
+    { key: "personal", name: "Personal", icon: "Users", href: "/admin/personal", order: 1 },
+    { key: "alumnado", name: "Alumnado", icon: "ClipboardList", href: "/admin/alumnado", order: 2 },
+    { key: "asistencia", name: "Asistencia", icon: "CalendarDays", href: "/admin/asistencia", order: 3 },
+    { key: "alertas", name: "Alertas", icon: "Bell", href: "/admin/alertas", order: 4 },
+    { key: "documentos", name: "Documentos", icon: "FileText", href: "/admin/documentos", order: 5 },
+    { key: "metricas", name: "Métricas", icon: "Gauge", href: "/admin/metricas", order: 6 },
+    { key: "apmae", name: "APMAE", icon: "Users", href: "/admin/apmae/calendario", order: 7 },
+  ];
+
+  for (const mod of moduleSeeds) {
+    await prisma.appModule.upsert({
+      where: { key: mod.key },
+      update: {},
+      create: { ...mod, enabled: true },
+    });
+  }
 
   console.log(`Seed listo. Usuario inicial: ${seedEmail} (cambia la contraseña luego).`);
 }
