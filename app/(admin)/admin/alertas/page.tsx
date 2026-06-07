@@ -50,7 +50,7 @@ async function generateWeeklyRiskAndAlerts() {
   const absences = await prisma.attendanceRecord.groupBy({
     by: ["enrollmentId"],
     where: {
-      enrollmentId: { in: enrollments.map((e) => e.id) },
+      enrollmentId: { in: enrollments.map((e: { id: string }) => e.id) },
       status: "AUSENTE",
       date: { gte: weekStart, lt: weekEnd },
     },
