@@ -175,28 +175,28 @@ export default async function AsistenciaPage({
   // Attendance records for selected day
   const attendanceForDay = await prisma.attendanceRecord.findMany({
     where: {
-      enrollmentId: { in: enrollments.map((e) => e.id) },
+      enrollmentId: { in: enrollments.map((e: { id: string }) => e.id) },
       date: selectedDate,
     },
   });
 
-  const attendanceByEnrollment = new Map(
-    attendanceForDay.map((r) => [r.enrollmentId, r.status]),
+  const attendanceByEnrollment = new Map<string, AttendanceStatus>(
+    attendanceForDay.map((r) => [r.enrollmentId, r.status] as [string, AttendanceStatus]),
   );
 
   // Weekly absences for risk badges
   const weeklyAbsences = await prisma.attendanceRecord.groupBy({
     by: ["enrollmentId"],
     where: {
-      enrollmentId: { in: enrollments.map((e) => e.id) },
+      enrollmentId: { in: enrollments.map((e: { id: string }) => e.id) },
       date: { gte: weekStart, lt: weekEnd },
       status: "AUSENTE",
     },
     _count: { _all: true },
   });
 
-  const absencesByEnrollment = new Map(
-    weeklyAbsences.map((r) => [r.enrollmentId, r._count._all]),
+  const absencesByEnrollment = new Map<string, number>(
+    weeklyAbsences.map((r) => [r.enrollmentId, r._count._all] as [string, number]),
   );
 
   // Day summary stats
