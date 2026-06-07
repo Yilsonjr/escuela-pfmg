@@ -4,8 +4,9 @@
 # ─────────────────────────────────────────────
 
 [build]
-  # Comando para construir el proyecto
-  command = "npm run build"
+  # Genera el Prisma Client primero (necesario para tipos en TypeScript)
+  # luego construye Next.js
+  command = "npx prisma generate && npm run build"
 
   # Carpeta que Netlify publica (Next.js genera aquí)
   publish = ".next"
