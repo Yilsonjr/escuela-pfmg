@@ -28,7 +28,8 @@ function makePrisma() {
   const pool = new Pool({
     connectionString,
     max: 10,
-    ssl: needsSsl ? { rejectUnauthorized: process.env.NODE_ENV === "production" } : undefined,
+    // rejectUnauthorized: false is required for Supabase's pooler certificates
+    ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
