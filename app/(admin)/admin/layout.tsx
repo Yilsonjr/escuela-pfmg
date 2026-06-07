@@ -1,91 +1,125 @@
 import Link from "next/link";
-import { CalendarDays, ClipboardList, FileText, Gauge, LayoutDashboard, Users, BookOpen, LogOut, Bell } from "lucide-react";
+import { BookOpen, LayoutDashboard, Settings } from "lucide-react";
 
 import { getSession } from "@/lib/server-session";
+import { hasPermission } from "@/lib/rbac";
+import { getEnabledModules } from "@/lib/modules";
 import { SignOutButton } from "@/components/admin/sign-out-button";
+import { MobileSidebar } from "@/components/admin/mobile-sidebar";
+import { NavLink } from "@/components/admin/nav-link";
+
+/** Accent color per module key for the sidebar */
+const MODULE_COLORS: Record<string, string> = {
+  personal:    "text-violet-500",
+  alumnado:    "text-brand-blue",
+  asistencia:  "text-emerald-500",
+  alertas:     "text-amber-500",
+  documentos:  "text-sky-500",
+  metricas:    "text-rose-500",
+  apmae:       "text-teal-500",
+};
 
 export default async function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getSession();
+  const permissions = session?.user?.permissions as string[] | undefined;
+  const canManageCenter = hasPermission(permissions, "center:manage");
+  const userName = session?.user?.name ?? session?.user?.email ?? "Usuario";
+
+  const enabledModules = await getEnabledModules();
 
   return (
-    <div className="min-h-screen bg-brand-sky/20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] font-sans">
+    <div className="min-h-screen bg-slate-100 font-sans">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 md:flex-row md:px-6">
-        
-        {/* Sidebar */}
-        <aside className="flex w-full flex-col gap-6 md:w-[280px] shrink-0">
-          <div className="sticky top-6 flex flex-col gap-6">
-            
-            <div className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-brand-blue/5 border border-white">
-              <div className="h-2 w-full bg-gradient-to-r from-brand-blue to-brand-gold"></div>
-              
-              <div className="p-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue-light to-brand-blue text-white shadow-md">
-                    <BookOpen className="h-6 w-6" />
-                  </div>
-                  <div className="leading-tight">
-                    <div className="text-sm font-bold text-brand-blue">Portal Administrativo</div>
-                    <div className="text-xs font-medium text-brand-gold truncate max-w-[150px]">
-                      {session?.user?.name ?? session?.user?.email ?? "Usuario"}
-                    </div>
-                  </div>
-                </div>
 
-                <nav className="mt-6 flex flex-col gap-1.5">
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-brand-blue transition-all hover:bg-brand-sky/50" href="/admin">
-                    <LayoutDashboard className="h-5 w-5 text-brand-blue-light transition-transform group-hover:scale-110" /> 
-                    Dashboard
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/personal">
-                    <Users className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Personal
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/alumnado">
-                    <ClipboardList className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Alumnado
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/asistencia">
-                    <CalendarDays className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Asistencia
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/documentos">
-                    <FileText className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Documentos
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/apmae/calendario">
-                    <Users className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    APMAE
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/metricas">
-                    <Gauge className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Métricas
-                  </Link>
-                  <Link className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-brand-sky/50 hover:text-brand-blue" href="/admin/alertas">
-                    <Bell className="h-5 w-5 transition-transform group-hover:scale-110" /> 
-                    Alertas
-                  </Link>
+        {/* ── Desktop Sidebar ─────────────────────────────── */}
+        <aside className="hidden md:flex w-[260px] flex-col gap-6 shrink-0">
+          <div className="sticky top-6">
+            <div className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-brand-blue/5 border border-white/80">
+
+              {/* Accent bar */}
+              <div className="h-1 w-full bg-brand-blue" />
+
+              <div className="p-4">
+                {/* User header — clickable to /admin/perfil */}
+                <Link
+                  href="/admin/perfil"
+                  className="flex items-center gap-3 pb-4 border-b border-zinc-100 group hover:opacity-80 transition-opacity"
+                >
+                  <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md" style={{background:"linear-gradient(135deg, #1652a6, #092e66)"}}>
+                    <BookOpen className="h-5 w-5 text-white" strokeWidth={1.5} />
+                    <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-brand-blue leading-tight truncate">
+                      Portal Administrativo
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-brand-gold truncate">
+                      {userName}
+                    </p>
+                  </div>
+                </Link>
+
+                {/* Navigation */}
+                <nav className="mt-3 flex flex-col gap-0.5">
+                  <NavLink
+                    href="/admin"
+                    iconName="LayoutDashboard"
+                    label="Dashboard"
+                    exact
+                  />
+
+                  {enabledModules.map((mod) => (
+                    <NavLink
+                      key={mod.key}
+                      href={mod.href}
+                      iconName={mod.icon}
+                      label={mod.name}
+                    />
+                  ))}
+
+                  {canManageCenter && (
+                    <>
+                      <div className="my-1 border-t border-zinc-100" />
+                      <NavLink
+                        href="/admin/configuracion"
+                        iconName="Settings"
+                        label="Configuración"
+                      />
+                    </>
+                  )}
                 </nav>
 
-                <div className="mt-6 border-t border-brand-sky/50 pt-6">
+                {/* Sign out */}
+                <div className="mt-3 border-t border-zinc-100 pt-3">
                   <SignOutButton />
                 </div>
               </div>
             </div>
-            
           </div>
         </aside>
 
-        {/* Main Content Area */}
+        {/* ── Mobile Sidebar ───────────────────────────────── */}
+        <MobileSidebar
+          userName={userName}
+          modules={enabledModules.map((m) => ({
+            key: m.key,
+            name: m.name,
+            icon: m.icon,
+            href: m.href,
+          }))}
+          canManageCenter={canManageCenter}
+        />
+
+        {/* ── Main Content ─────────────────────────────────── */}
         <main className="flex-1 animate-fade-in">
-          <div className="min-h-[calc(100vh-3rem)] rounded-3xl bg-white p-6 shadow-xl shadow-brand-blue/5 md:p-8 border border-white">
+          <div className="min-h-[calc(100vh-3rem)] rounded-3xl bg-white p-6 shadow-xl shadow-brand-blue/5 md:p-8 border border-white/80">
             {children}
           </div>
         </main>
-        
+
       </div>
     </div>
   );
 }
-

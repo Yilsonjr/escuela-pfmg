@@ -3,19 +3,18 @@
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-
 export function SignOutButton() {
   return (
-    <Button
-      variant="ghost"
-      className="w-full justify-start"
-      onClick={() => signOut({ callbackUrl: "/" })}
+    <button
       type="button"
+      onClick={() => signOut({ callbackUrl: "/" })}
+      className="group flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-400 transition-all hover:bg-red-50 hover:text-red-500"
     >
-      <LogOut className="h-4 w-4" />
+      <LogOut
+        className="h-4 w-4 transition-all group-hover:scale-110"
+        strokeWidth={1.5}
+      />
       Salir
-    </Button>
+    </button>
   );
 }
-

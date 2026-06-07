@@ -14,13 +14,12 @@ export function PageHeader({
   return (
     <div className={cn("flex flex-col gap-4 md:flex-row md:items-end md:justify-between", className)}>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-800">{title}</h1>
         {description ? (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1 text-sm font-medium text-zinc-500">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </div>
   );
 }
-

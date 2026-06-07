@@ -51,6 +51,9 @@ enum GradeCode {
   PRIMERO
   SEGUNDO
   TERCERO
+  CUARTO
+  QUINTO
+  SEXTO
 }
 
 enum SectionLetter {
@@ -249,6 +252,7 @@ model TeacherAssignment {
 
 model Student {
   id           String   @id @default(cuid())
+  sigerdId     String?  @unique
   firstName    String
   lastName     String
   birthDate    DateTime?
@@ -384,6 +388,21 @@ model DocumentRole {
   role     Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([documentId, roleId])
+}
+
+model AppModule {
+  id        String  @id @default(cuid())
+  key       String  @unique   // e.g. "personal", "alumnado", "asistencia"
+  name      String            // Display name
+  icon      String  @default("Box") // Lucide icon name
+  href      String            // Route path e.g. "/admin/personal"
+  enabled   Boolean @default(true)
+  order     Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled, order])
 }
 
 model Meeting {
