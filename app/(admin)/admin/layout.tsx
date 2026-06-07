@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BookOpen, LayoutDashboard, Settings } from "lucide-react";
+import Image from "next/image";
+import { LayoutDashboard, Settings } from "lucide-react";
 
 import { getSession } from "@/lib/server-session";
 import { hasPermission } from "@/lib/rbac";
@@ -47,8 +48,14 @@ export default async function AdminLayout({
                   href="/admin/perfil"
                   className="flex items-center gap-3 pb-4 border-b border-zinc-100 group hover:opacity-80 transition-opacity"
                 >
-                  <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md" style={{background:"linear-gradient(135deg, #1652a6, #092e66)"}}>
-                    <BookOpen className="h-5 w-5 text-white" strokeWidth={1.5} />
+                  <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-md border border-zinc-100 overflow-hidden p-0.5">
+                    <Image
+                      src="/logo.png"
+                      alt="Logo"
+                      width={36}
+                      height={36}
+                      className="h-full w-full object-contain"
+                    />
                     <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
                   </div>
                   <div className="min-w-0 flex-1">

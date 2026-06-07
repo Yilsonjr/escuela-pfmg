@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, BookOpen, LogOut, Settings } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 import { NavLink } from "@/components/admin/nav-link";
 
 type ModuleInfo = {
@@ -56,8 +57,14 @@ export function MobileSidebar({
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
             <div className="flex items-center gap-3">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl shadow-md" style={{background:"linear-gradient(135deg, #1652a6, #092e66)"}}>
-                <BookOpen className="h-5 w-5 text-white" strokeWidth={1.5} />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-md border border-zinc-100 overflow-hidden p-0.5">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-contain"
+                />
                 <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
               </div>
               <div className="min-w-0">

@@ -3,7 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { BookOpen, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const searchParams = useSearchParams();
@@ -50,8 +51,15 @@ export default function AdminLoginPage() {
           <div className="p-8 sm:p-10">
             {/* Logo + title */}
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue-light to-brand-blue text-white shadow-lg shadow-brand-blue/30">
-                <BookOpen className="h-8 w-8" strokeWidth={1.5} />
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-lg shadow-brand-blue/15 border border-zinc-100 overflow-hidden p-1">
+                <Image
+                  src="/logo.png"
+                  alt="Logo Escuela Prof. Felipe Montes Gómez"
+                  width={72}
+                  height={72}
+                  className="h-full w-full object-contain"
+                  priority
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-brand-blue">

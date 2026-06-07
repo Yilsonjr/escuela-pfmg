@@ -40,11 +40,17 @@ export const metadata: Metadata = {
     follow: true,
     nocache: false,
   },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+    shortcut: "/logo.png",
+  },
   openGraph: {
     title: "Escuela Primaria Prof. Felipe Montes Gómez",
     description: "Portal informativo y sistema administrativo de la Escuela Primaria Prof. Felipe Montes Gómez.",
     locale: "es_DO",
     type: "website",
+    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Logo Escuela Prof. Felipe Montes Gómez" }],
   },
 };
 

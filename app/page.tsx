@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BookOpen,
   Users,
   Shield,
   GraduationCap,
@@ -17,6 +16,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/site-config";
 
@@ -118,8 +118,14 @@ export default async function Home() {
       <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="group flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue transition-colors group-hover:bg-brand-blue-light">
-              <BookOpen className="h-4 w-4 text-white" strokeWidth={1.5} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden border border-zinc-100 bg-white shadow-sm transition-shadow group-hover:shadow-md p-0.5">
+              <Image
+                src="/logo.png"
+                alt="Logo Escuela"
+                width={32}
+                height={32}
+                className="h-full w-full object-contain"
+              />
             </div>
             <div className="leading-none">
               <p className="text-sm font-semibold text-brand-blue">
@@ -461,10 +467,13 @@ export default async function Home() {
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue">
-                  <BookOpen
-                    className="h-4 w-4 text-white"
-                    strokeWidth={1.5}
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-white border border-zinc-200 shadow-sm p-0.5">
+                  <Image
+                    src="/logo.png"
+                    alt="Logo Escuela"
+                    width={32}
+                    height={32}
+                    className="h-full w-full object-contain"
                   />
                 </div>
                 <div>

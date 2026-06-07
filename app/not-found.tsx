@@ -1,13 +1,20 @@
 import Link from "next/link";
-import { BookOpen, Home, ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-md text-center">
         {/* Logo */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-blue shadow-lg">
-          <BookOpen className="h-8 w-8 text-white" strokeWidth={1.5} />
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-white shadow-lg border border-zinc-100 overflow-hidden p-1.5">
+          <Image
+            src="/logo.png"
+            alt="Logo Escuela"
+            width={52}
+            height={52}
+            className="h-full w-full object-contain"
+          />
         </div>
 
         {/* Error code */}
