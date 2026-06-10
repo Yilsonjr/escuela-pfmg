@@ -102,13 +102,18 @@ const testimonials = [
 export default async function Home() {
   let studentCount = 0;
   let staffCount = 0;
+  let activeYearLabel = siteConfig.currentSchoolYear; // fallback estático
   try {
-    [studentCount, staffCount] = await Promise.all([
+    const [students, staff, activeYear] = await Promise.all([
       prisma.student.count(),
       prisma.staff.count({ where: { isActive: true } }),
+      prisma.schoolYear.findFirst({ where: { isActive: true }, select: { label: true } }),
     ]);
+    studentCount = students;
+    staffCount   = staff;
+    if (activeYear?.label) activeYearLabel = activeYear.label;
   } catch {
-    // DB unreachable — use fallback values from siteConfig
+    // DB unreachable — usar valores de fallback de siteConfig
   }
   const yearsOfHistory = new Date().getFullYear() - siteConfig.foundedYear;
 
@@ -184,7 +189,7 @@ export default async function Home() {
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   <span className="text-xs font-medium text-white/60">
-                    Inscripciones abiertas {siteConfig.currentSchoolYear}
+                    Inscripciones abiertas {activeYearLabel}
                   </span>
                 </div>
 
