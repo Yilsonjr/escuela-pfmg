@@ -543,7 +543,6 @@ export default async function Home() {
                   { label: "Portal docente", href: "/admin" },
                   { label: "Gestión documental", href: "/admin" },
                   { label: "Proceso de inscripción", href: "#contacto" },
-                  { label: "Horarios y calendario", href: "#contacto" },
                 ].map(({ label, href }) => (
                   <li key={label}>
                     <Link
