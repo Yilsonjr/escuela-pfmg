@@ -496,9 +496,9 @@ export default async function Home() {
               </p>
               <div className="space-y-2">
                 {[
-                  { icon: MapPin, label: "República Dominicana" },
-                  { icon: Phone, label: "(809) 000-0000" },
-                  { icon: Mail, label: "info@escuela.edu.do" },
+                  { icon: MapPin, label: siteConfig.location },
+                  { icon: Phone, label: siteConfig.phone },
+                  { icon: Mail, label: siteConfig.email },
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
