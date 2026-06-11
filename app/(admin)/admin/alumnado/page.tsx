@@ -85,14 +85,13 @@ export default async function AlumnadoPage({
   const filterSection = params.section || "";
   const filterStatus = params.status || "";
 
-  const activeYear = await prisma.schoolYear.findFirst({
-    where: { isActive: true },
-  });
-
-  const sections = await prisma.section.findMany({
-    include: { grade: true },
-    orderBy: [{ grade: { order: "asc" } }, { letter: "asc" }],
-  });
+  const [activeYear, sections] = await Promise.all([
+    prisma.schoolYear.findFirst({ where: { isActive: true } }),
+    prisma.section.findMany({
+      include: { grade: true },
+      orderBy: [{ grade: { order: "asc" } }, { letter: "asc" }],
+    }),
+  ]);
 
   // Build enrollment query filters
   const enrollmentWhere: Record<string, unknown> = {};
@@ -141,30 +140,25 @@ export default async function AlumnadoPage({
       })
     : [];
 
-  // Stats
-  const totalEnrolled = activeYear
-    ? await prisma.enrollment.count({
-        where: { schoolYearId: activeYear.id, status: "ACTIVO" },
-      })
-    : 0;
+  // Stats — parallelized
+  const [totalEnrolled, totalStudents, grades] = await Promise.all([
+    activeYear
+      ? prisma.enrollment.count({ where: { schoolYearId: activeYear.id, status: "ACTIVO" } })
+      : Promise.resolve(0),
+    prisma.student.count(),
+    prisma.grade.findMany({ orderBy: { order: "asc" } }),
+  ]);
 
-  const totalStudents = await prisma.student.count();
-
-  // Grade counts for stat cards
-  const grades = await prisma.grade.findMany({ orderBy: { order: "asc" } });
   const gradeCounts: { name: string; code: string; count: number }[] = [];
-
   if (activeYear) {
-    for (const g of grades) {
-      const count = await prisma.enrollment.count({
-        where: {
-          schoolYearId: activeYear.id,
-          status: "ACTIVO",
-          section: { gradeId: g.id },
-        },
-      });
-      gradeCounts.push({ name: g.name, code: g.code, count });
-    }
+    const counts = await Promise.all(
+      grades.map((g) =>
+        prisma.enrollment.count({
+          where: { schoolYearId: activeYear.id, status: "ACTIVO", section: { gradeId: g.id } },
+        }),
+      ),
+    );
+    grades.forEach((g, i) => gradeCounts.push({ name: g.name, code: g.code, count: counts[i] }));
   }
 
   // Unique grades for filter buttons

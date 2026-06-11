@@ -104,14 +104,13 @@ export default async function AsistenciaPage({
   );
 
   const params = await searchParams;
-  const activeYear = await prisma.schoolYear.findFirst({
-    where: { isActive: true },
-  });
-
-  const sections = await prisma.section.findMany({
-    include: { grade: true },
-    orderBy: [{ grade: { order: "asc" } }, { letter: "asc" }],
-  });
+  const [activeYear, sections] = await Promise.all([
+    prisma.schoolYear.findFirst({ where: { isActive: true } }),
+    prisma.section.findMany({
+      include: { grade: true },
+      orderBy: [{ grade: { order: "asc" } }, { letter: "asc" }],
+    }),
+  ]);
 
   const selectedSectionId = params.sectionId ?? sections[0]?.id;
   const selectedDate = params.date ? parseISO(params.date) : new Date();
@@ -172,28 +171,22 @@ export default async function AsistenciaPage({
     ],
   });
 
-  // Attendance records for selected day
-  const attendanceForDay = await prisma.attendanceRecord.findMany({
-    where: {
-      enrollmentId: { in: enrollments.map((e: { id: string }) => e.id) },
-      date: selectedDate,
-    },
-  });
+  const enrollmentIds = enrollments.map((e: { id: string }) => e.id);
+
+  const [attendanceForDay, weeklyAbsences] = await Promise.all([
+    prisma.attendanceRecord.findMany({
+      where: { enrollmentId: { in: enrollmentIds }, date: selectedDate },
+    }),
+    prisma.attendanceRecord.groupBy({
+      by: ["enrollmentId"],
+      where: { enrollmentId: { in: enrollmentIds }, date: { gte: weekStart, lt: weekEnd }, status: "AUSENTE" },
+      _count: { _all: true },
+    }),
+  ]);
 
   const attendanceByEnrollment = new Map<string, AttendanceStatus>(
     attendanceForDay.map((r) => [r.enrollmentId, r.status] as [string, AttendanceStatus]),
   );
-
-  // Weekly absences for risk badges
-  const weeklyAbsences = await prisma.attendanceRecord.groupBy({
-    by: ["enrollmentId"],
-    where: {
-      enrollmentId: { in: enrollments.map((e: { id: string }) => e.id) },
-      date: { gte: weekStart, lt: weekEnd },
-      status: "AUSENTE",
-    },
-    _count: { _all: true },
-  });
 
   const absencesByEnrollment = new Map<string, number>(
     weeklyAbsences.map((r) => [r.enrollmentId, r._count._all] as [string, number]),

@@ -180,36 +180,23 @@ export default async function AlertasPage({
     };
   }
 
-  const alerts = await prisma.alert.findMany({
-    where,
-    include: {
-      student: true,
-      enrollment: { include: { section: { include: { grade: true } } } },
-      assignedStaff: true,
-    },
-    orderBy: [{ createdAt: "desc" }],
-    take: 200,
-  });
-
-  // Stats
-  const totalOpen = await prisma.alert.count({
-    where: { status: "ABIERTA" },
-  });
-  const totalFollowUp = await prisma.alert.count({
-    where: { status: "EN_SEGUIMIENTO" },
-  });
-  const totalRojo = await prisma.alert.count({
-    where: { severity: "ROJO", status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] } },
-  });
-  const totalAmarillo = await prisma.alert.count({
-    where: {
-      severity: "AMARILLO",
-      status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] },
-    },
-  });
-
-  // Grades for filter
-  const grades = await prisma.grade.findMany({ orderBy: { order: "asc" } });
+  const [alerts, totalOpen, totalFollowUp, totalRojo, totalAmarillo, grades] = await Promise.all([
+    prisma.alert.findMany({
+      where,
+      include: {
+        student: true,
+        enrollment: { include: { section: { include: { grade: true } } } },
+        assignedStaff: true,
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 200,
+    }),
+    prisma.alert.count({ where: { status: "ABIERTA" } }),
+    prisma.alert.count({ where: { status: "EN_SEGUIMIENTO" } }),
+    prisma.alert.count({ where: { severity: "ROJO",    status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] } } }),
+    prisma.alert.count({ where: { severity: "AMARILLO", status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] } } }),
+    prisma.grade.findMany({ orderBy: { order: "asc" } }),
+  ]);
 
   return (
     <div className="space-y-6">

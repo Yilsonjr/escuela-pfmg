@@ -149,12 +149,12 @@ export default async function PersonalPage({
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
 
-  const editing    = editId ? await prisma.staff.findUnique({ where: { id: editId } }) : null;
-  const totalCount  = await prisma.staff.count();
-  const activeCount = await prisma.staff.count({ where: { isActive: true } });
-
-  // Full staff for counts (unfiltered)
-  const allStaff = await prisma.staff.findMany({ select: { type: true } });
+  const [editing, totalCount, activeCount, allStaff] = await Promise.all([
+    editId ? prisma.staff.findUnique({ where: { id: editId } }) : Promise.resolve(null),
+    prisma.staff.count(),
+    prisma.staff.count({ where: { isActive: true } }),
+    prisma.staff.findMany({ select: { type: true } }),
+  ]);
 
   return (
     <div className="space-y-6">

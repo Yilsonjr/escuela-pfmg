@@ -106,12 +106,10 @@ export default async function DocumentosPage({
     where.category = filterCategory;
   }
 
-  const docs = await prisma.document.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
-
-  const totalDocs = await prisma.document.count();
+  const [docs, totalDocs] = await Promise.all([
+    prisma.document.findMany({ where, orderBy: { createdAt: "desc" } }),
+    prisma.document.count(),
+  ]);
 
   return (
     <div className="space-y-6">

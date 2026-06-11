@@ -139,58 +139,31 @@ export default async function MetricasPage() {
   let studentsWithdrawn = 0;
 
   if (activeYear) {
-    totalStudents = await prisma.enrollment.count({
-      where: { schoolYearId: activeYear.id, status: "ACTIVO" },
-    });
+    const [enrolled, withdrawn, enrollmentIds, alerts] = await Promise.all([
+      prisma.enrollment.count({ where: { schoolYearId: activeYear.id, status: "ACTIVO" } }),
+      prisma.enrollment.count({ where: { schoolYearId: activeYear.id, status: "RETIRADO" } }),
+      prisma.enrollment.findMany({ where: { schoolYearId: activeYear.id }, select: { id: true } }),
+      prisma.alert.count({ where: { status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] } } }),
+    ]);
 
-    studentsWithdrawn = await prisma.enrollment.count({
-      where: { schoolYearId: activeYear.id, status: "RETIRADO" },
-    });
+    totalStudents    = enrolled;
+    studentsWithdrawn = withdrawn;
+    activeAlerts     = alerts;
 
-    // Attendance stats for this school year
-    const enrollmentIds = (
-      await prisma.enrollment.findMany({
-        where: { schoolYearId: activeYear.id },
-        select: { id: true },
-      })
-    ).map((e) => e.id);
-
-    if (enrollmentIds.length > 0) {
-      totalAttendanceRecords = await prisma.attendanceRecord.count({
-        where: { enrollmentId: { in: enrollmentIds } },
-      });
-
-      totalPresent = await prisma.attendanceRecord.count({
-        where: {
-          enrollmentId: { in: enrollmentIds },
-          status: "PRESENTE",
-        },
-      });
-
-      totalAbsent = await prisma.attendanceRecord.count({
-        where: {
-          enrollmentId: { in: enrollmentIds },
-          status: "AUSENTE",
-        },
-      });
-
-      totalLate = await prisma.attendanceRecord.count({
-        where: {
-          enrollmentId: { in: enrollmentIds },
-          status: "TARDE",
-        },
-      });
-
-      if (totalAttendanceRecords > 0) {
-        attendanceRate = Math.round(
-          ((totalPresent + totalLate) / totalAttendanceRecords) * 100,
-        );
-      }
+    const ids = enrollmentIds.map((e) => e.id);
+    if (ids.length > 0) {
+      const [total, present, absent, late] = await Promise.all([
+        prisma.attendanceRecord.count({ where: { enrollmentId: { in: ids } } }),
+        prisma.attendanceRecord.count({ where: { enrollmentId: { in: ids }, status: "PRESENTE" } }),
+        prisma.attendanceRecord.count({ where: { enrollmentId: { in: ids }, status: "AUSENTE" } }),
+        prisma.attendanceRecord.count({ where: { enrollmentId: { in: ids }, status: "TARDE" } }),
+      ]);
+      totalAttendanceRecords = total;
+      totalPresent           = present;
+      totalAbsent            = absent;
+      totalLate              = late;
+      if (total > 0) attendanceRate = Math.round(((present + late) / total) * 100);
     }
-
-    activeAlerts = await prisma.alert.count({
-      where: { status: { in: ["ABIERTA", "EN_SEGUIMIENTO"] } },
-    });
   }
 
   // Attendance by grade
