@@ -66,7 +66,7 @@ export function SigerdImportForm() {
               name="file"
               type="file"
               accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-              className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-blue hover:file:bg-brand-blue/20"
+              className="block w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-blue file:px-4 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-brand-blue-light"
               required
               onChange={(e) => {
                 const f = e.target.files?.[0];

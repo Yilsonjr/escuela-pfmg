@@ -22,6 +22,7 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 /* ── Server Actions ────────────────────────────────────────── */
 
 const studentSchema = z.object({
+  sigerdId: z.string().optional().or(z.literal("")),
   firstName: z.string().min(2),
   lastName: z.string().min(2),
   guardianName: z.string().optional().or(z.literal("")),
@@ -32,6 +33,7 @@ const studentSchema = z.object({
 async function createStudentWithEnrollment(formData: FormData) {
   "use server";
   const parsed = studentSchema.safeParse({
+    sigerdId: formData.get("sigerdId"),
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     guardianName: formData.get("guardianName"),
@@ -47,6 +49,7 @@ async function createStudentWithEnrollment(formData: FormData) {
 
   const student = await prisma.student.create({
     data: {
+      sigerdId: parsed.data.sigerdId || null,
       firstName: parsed.data.firstName,
       lastName: parsed.data.lastName,
       guardianName: parsed.data.guardianName || null,
@@ -264,6 +267,12 @@ export default async function AlumnadoPage({
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-zinc-700">Apellidos</label>
                   <Input name="lastName" placeholder="Pérez" required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-zinc-700">
+                    ID SIGERD <span className="text-xs font-normal text-zinc-400">(opcional)</span>
+                  </label>
+                  <Input name="sigerdId" placeholder="ej. 00123456" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-zinc-700">
