@@ -405,6 +405,19 @@ model AppModule {
   @@index([enabled, order])
 }
 
+model SchoolProfile {
+  id           String   @id @default("singleton")
+  name         String   @default("Escuela Primaria Prof. Felipe Montes Gómez")
+  shortName    String   @default("Escuela Primaria")
+  subtitle     String   @default("Prof. Felipe Montes Gómez")
+  location     String   @default("República Dominicana")
+  phone        String   @default("")
+  email        String   @default("")
+  foundedYear  Int      @default(2014)
+  approvalRate String   @default("97%")
+  updatedAt    DateTime @updatedAt
+}
+
 model Meeting {
   id           String   @id @default(cuid())
   schoolYearId String

@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import {
-  Settings2, LayoutGrid, Info,
+  Settings2, LayoutGrid, Info, School,
   Users, GraduationCap, CalendarCheck, Bell,
   FileText, Gauge, UsersRound, Settings,
   type LucideIcon,
@@ -9,6 +9,7 @@ import {
 import { requirePermission } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { getModules, DEFAULT_MODULES } from "@/lib/modules";
+import { getSchoolProfile } from "@/lib/school-profile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -36,6 +37,27 @@ const FALLBACK_META: ModuleMeta = {
 };
 
 /* ── Server Actions ────────────────────────────────────────── */
+
+async function saveSchoolProfile(formData: FormData) {
+  "use server";
+  const data = {
+    name:         String(formData.get("name") ?? "").trim(),
+    shortName:    String(formData.get("shortName") ?? "").trim(),
+    subtitle:     String(formData.get("subtitle") ?? "").trim(),
+    location:     String(formData.get("location") ?? "").trim(),
+    phone:        String(formData.get("phone") ?? "").trim(),
+    email:        String(formData.get("email") ?? "").trim(),
+    foundedYear:  parseInt(String(formData.get("foundedYear") ?? "2014"), 10),
+    approvalRate: String(formData.get("approvalRate") ?? "").trim(),
+  };
+  await prisma.schoolProfile.upsert({
+    where:  { id: "singleton" },
+    update: data,
+    create: { id: "singleton", ...data },
+  });
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/");
+}
 
 async function toggleModule(formData: FormData) {
   "use server";
@@ -65,10 +87,13 @@ async function initializeModules() {
 export default async function ConfiguracionPage() {
   await requirePermission("center:manage");
 
-  const modules        = await getModules();
-  const hasModulesInDb = await prisma.appModule.count();
-  const enabledCount   = modules.filter((m) => m.enabled).length;
-  const totalCount     = modules.length;
+  const [modules, hasModulesInDb, profile] = await Promise.all([
+    getModules(),
+    prisma.appModule.count(),
+    getSchoolProfile(),
+  ]);
+  const enabledCount = modules.filter((m) => m.enabled).length;
+  const totalCount   = modules.length;
 
   return (
     <div className="space-y-6">
@@ -85,6 +110,68 @@ export default async function ConfiguracionPage() {
           </p>
         </div>
       </div>
+
+      {/* ── Información del Centro ──────────────────────── */}
+      <div className="flex items-center gap-2 mt-2">
+        <School className="h-4 w-4 text-zinc-400" />
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          Información del Centro
+        </h2>
+      </div>
+
+      <form action={saveSchoolProfile}>
+        <Card>
+          <CardContent className="space-y-4 pt-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Nombre completo</label>
+                <input name="name" defaultValue={profile.name}
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Nombre corto</label>
+                <input name="shortName" defaultValue={profile.shortName}
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Subtítulo</label>
+                <input name="subtitle" defaultValue={profile.subtitle}
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Ubicación</label>
+                <input name="location" defaultValue={profile.location}
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Teléfono</label>
+                <input name="phone" defaultValue={profile.phone} type="tel"
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Correo electrónico</label>
+                <input name="email" defaultValue={profile.email} type="email"
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Año de fundación</label>
+                <input name="foundedYear" defaultValue={profile.foundedYear} type="number" min="1900" max="2100"
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Tasa de aprobación</label>
+                <input name="approvalRate" defaultValue={profile.approvalRate} placeholder="ej. 97%"
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/10" />
+              </div>
+            </div>
+            <div className="flex justify-end pt-1">
+              <Button type="submit">Guardar cambios</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
+
+      <div className="border-t border-zinc-100" />
 
       {/* ── Initialize banner ───────────────────────────── */}
       {hasModulesInDb === 0 && (

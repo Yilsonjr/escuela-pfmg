@@ -19,6 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/site-config";
+import { getSchoolProfile } from "@/lib/school-profile";
 
 /* ─── Data ─────────────────────────────────────────────────── */
 
@@ -102,7 +103,10 @@ const testimonials = [
 export default async function Home() {
   let studentCount = 0;
   let staffCount = 0;
-  let activeYearLabel = siteConfig.currentSchoolYear; // fallback estático
+  let activeYearLabel = siteConfig.currentSchoolYear;
+
+  const profile = await getSchoolProfile();
+
   try {
     const [students, staff, activeYear] = await Promise.all([
       prisma.student.count(),
@@ -113,9 +117,9 @@ export default async function Home() {
     staffCount   = staff;
     if (activeYear?.label) activeYearLabel = activeYear.label;
   } catch {
-    // DB unreachable — usar valores de fallback de siteConfig
+    // DB unreachable — usar valores de fallback
   }
-  const yearsOfHistory = new Date().getFullYear() - siteConfig.foundedYear;
+  const yearsOfHistory = new Date().getFullYear() - profile.foundedYear;
 
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans selection:bg-brand-gold/20 selection:text-brand-blue">
@@ -134,10 +138,10 @@ export default async function Home() {
             </div>
             <div className="leading-none">
               <p className="text-sm font-semibold text-brand-blue">
-                {siteConfig.shortName}
+                {profile.shortName}
               </p>
               <p className="mt-0.5 text-[11px] text-zinc-400">
-                {siteConfig.subtitle}
+                {profile.subtitle}
               </p>
             </div>
           </Link>
@@ -201,7 +205,7 @@ export default async function Home() {
                 </h1>
 
                 <p className="max-w-lg text-base leading-relaxed text-white/60">
-                  Desde {siteConfig.foundedYear} formamos niños con excelencia académica, valores
+                  Desde {profile.foundedYear} formamos niños con excelencia académica, valores
                   sólidos y acompañamiento integral. Más de {studentCount || 500} familias confían
                   en nosotros.
                 </p>
@@ -234,7 +238,7 @@ export default async function Home() {
                     {[
                       { value: studentCount > 0 ? `+${studentCount}` : "+500", label: "Estudiantes activos" },
                       { value: String(staffCount || 28), label: "Docentes titulados" },
-                      { value: siteConfig.stats.approvalRate, label: "Tasa de aprobación" },
+                      { value: profile.approvalRate, label: "Tasa de aprobación" },
                       { value: String(yearsOfHistory), label: "Años de historia" },
                     ].map(({ value, label }) => (
                       <div key={label}>
@@ -347,10 +351,10 @@ export default async function Home() {
 
             <div className="mt-14 grid grid-cols-2 gap-6 border-t border-brand-warm-2 pt-10 sm:grid-cols-4">
               {[
-                { value: String(siteConfig.foundedYear), label: "Año de fundación" },
+                { value: String(profile.foundedYear), label: "Año de fundación" },
                 { value: studentCount > 0 ? `+${studentCount}` : "+500", label: "Familias activas" },
                 { value: `${staffCount || 25}+`, label: "Docentes certificados" },
-                { value: siteConfig.stats.approvalRate, label: "Tasa de aprobación" },
+                { value: profile.approvalRate, label: "Tasa de aprobación" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="font-headline text-2xl font-bold tabular-nums text-brand-blue">
@@ -433,7 +437,7 @@ export default async function Home() {
 
             <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:justify-center">
               <Link
-                href={`mailto:${siteConfig.email}`}
+                href={`mailto:${profile.email}`}
                 className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-sm font-semibold text-brand-blue transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue"
               >
                 Iniciar inscripción
@@ -449,9 +453,9 @@ export default async function Home() {
 
             <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:justify-center sm:gap-8">
               {[
-                { icon: MapPin, value: siteConfig.location },
-                { icon: Phone, value: siteConfig.phone },
-                { icon: Mail, value: siteConfig.email },
+                { icon: MapPin, value: profile.location },
+                { icon: Phone, value: profile.phone },
+                { icon: Mail, value: profile.email },
               ].map(({ icon: Icon, value }) => (
                 <div
                   key={value}
@@ -483,22 +487,22 @@ export default async function Home() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-brand-blue">
-                    {siteConfig.shortName}
+                    {profile.shortName}
                   </p>
                   <p className="text-[11px] text-zinc-400">
-                    {siteConfig.subtitle}
+                    {profile.subtitle}
                   </p>
                 </div>
               </div>
               <p className="max-w-xs text-sm leading-relaxed text-zinc-500">
                 Formando niños con excelencia académica, valores humanos y
-                bienestar integral desde {siteConfig.foundedYear}.
+                bienestar integral desde {profile.foundedYear}.
               </p>
               <div className="space-y-2">
                 {[
-                  { icon: MapPin, label: siteConfig.location },
-                  { icon: Phone, label: siteConfig.phone },
-                  { icon: Mail, label: siteConfig.email },
+                  { icon: MapPin, label: profile.location },
+                  { icon: Phone, label: profile.phone },
+                  { icon: Mail, label: profile.email },
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
@@ -559,7 +563,7 @@ export default async function Home() {
 
           <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-zinc-200 pt-6 text-xs text-zinc-400 sm:flex-row">
             <p>
-              © {new Date().getFullYear()} {siteConfig.name} · Todos los
+              © {new Date().getFullYear()} {profile.name} · Todos los
               derechos reservados
             </p>
             <Link
