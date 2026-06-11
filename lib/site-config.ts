@@ -5,8 +5,8 @@ export const siteConfig = {
   logo: "/logo.png",
   foundedYear: 2014,
   location: "República Dominicana",
-  phone: "(809) 000-0000",
-  email: "info@escuela.edu.do",
+  phone: "(809) 729-7311",
+  email: "prof.felipemontesgomez@gmail.com",
   currentSchoolYear: "2025–2026",
   stats: {
     approvalRate: "97%",
