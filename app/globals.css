@@ -77,6 +77,19 @@ body {
   font-family: var(--font-sans, system-ui, sans-serif);
 }
 
+/* Force legible inputs regardless of OS color scheme */
+input,
+textarea,
+select {
+  color: #18181b;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a1a1aa;
+  opacity: 1;
+}
+
 .hero-pattern {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
   background-size: 28px 28px;

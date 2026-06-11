@@ -60,7 +60,7 @@ export function SigerdImportForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium">Archivo Excel (.xlsx)</label>
+            <label className="text-sm font-medium text-zinc-700">Archivo Excel (.xlsx)</label>
             <input
               ref={fileRef}
               name="file"
