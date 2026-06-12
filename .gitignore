@@ -41,3 +41,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 Manual_Usuario_Portal_Escolar.docx
+.claude/worktrees/amazing-ishizaka-17fd75/app/page.tsx
+.claude/worktrees/amazing-ishizaka-17fd75/lib/site-config.ts
