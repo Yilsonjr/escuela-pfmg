@@ -2,10 +2,11 @@
  * Parser para archivos Excel exportados de SIGERD
  * Formato: "Relación de Estudiantes por Secciones"
  *
- * Cada hoja (sheet) contiene una sección con:
- * - Filas 0-24: encabezado con metadata (año escolar, regional, grado, sección, docente)
- * - Fila 25: headers de columnas
- * - Filas 26+: datos de estudiantes
+ * Estructura del archivo:
+ * - Múltiples hojas (sheets), una por sección
+ * - Filas 0-24: encabezado con metadata (año escolar, regional, grado, sección)
+ * - Una fila con "Id Estudiante" como header de columnas
+ * - Filas siguientes: datos de estudiantes (columnas sparse/con muchas vacías)
  */
 import * as XLSX from "xlsx";
 
@@ -25,7 +26,7 @@ export interface SigerdParseResult {
   errors: string[];
 }
 
-/** Maps SIGERD grade names to our GradeCode enum */
+/** Maps SIGERD grade labels to our GradeCode enum */
 const GRADE_MAP: Record<string, string> = {
   "pre-primaria": "PREPRIMARIO",
   "preprimario": "PREPRIMARIO",
@@ -50,7 +51,6 @@ function findCellValue(row: unknown[], searchText: string): string | null {
   for (let i = 0; i < row.length; i++) {
     const cell = row[i];
     if (typeof cell === "string" && cell.includes(searchText)) {
-      // Look for value in subsequent cells
       for (let j = i + 1; j < row.length; j++) {
         if (row[j] !== null && row[j] !== undefined && row[j] !== "") {
           return String(row[j]);
@@ -73,6 +73,33 @@ function parseExcelDate(value: unknown): string | null {
   return null;
 }
 
+/**
+ * Build a column index map from the header row.
+ * The SIGERD report has many empty columns, so column positions vary.
+ * We detect them dynamically by matching header labels.
+ */
+function buildColMap(headerRow: unknown[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  const ALIASES: Record<string, string> = {
+    "Id Estudiante": "sigerdId",
+    "Primer apellido": "primerApellido",
+    "Segundo apellido": "segundoApellido",
+    "Nombre(s)": "nombres",
+    "Nacimiento": "nacimiento",
+    "Grado": "grade",
+    "Sec.": "section",
+    "Estado": "status",
+    "Condición": "condicion",
+  };
+  headerRow.forEach((cell, idx) => {
+    if (typeof cell === "string") {
+      const key = ALIASES[cell.trim()];
+      if (key) map[key] = idx;
+    }
+  });
+  return map;
+}
+
 export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
   const wb = XLSX.read(buffer, { type: "array" });
   const students: SigerdStudent[] = [];
@@ -81,11 +108,14 @@ export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
 
   for (const sheetName of wb.SheetNames) {
     const ws = wb.Sheets[sheetName];
-    const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, {
+      header: 1,
+      defval: "",
+    });
 
-    if (rows.length < 26) continue; // Skip empty/short sheets
+    if (rows.length < 20) continue;
 
-    // Extract metadata from header rows
+    // Extract school year, grade and section from header rows
     let grade = "";
     let section = "";
 
@@ -93,30 +123,23 @@ export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
       const row = rows[i];
       if (!row || row.length === 0) continue;
 
-      // School year (row ~13)
+      // School year (row ~13, e.g. "Año 2025-2026")
       for (const cell of row) {
         if (typeof cell === "string" && /Año\s+\d{4}-\d{4}/.test(cell)) {
           schoolYear = cell.replace("Año ", "").trim();
         }
       }
 
-      // Grade (row ~20, after "Grado:")
+      // Grade (look for "Grado:" label in each row)
       const gradeVal = findCellValue(row as unknown[], "Grado:");
       if (gradeVal) {
         grade = normalizeGrade(gradeVal) || gradeVal;
       }
 
-      // Also check for grade in the tanda line (e.g. "Primario - JORNADA EXTENDIDA" + "Grado:" + "Cuarto")
-      // Sometimes the grade name is the last non-null cell
-      const tandaGrade = findCellValue(row as unknown[], "Grado:");
-      if (tandaGrade && !grade) {
-        grade = normalizeGrade(tandaGrade) || tandaGrade;
-      }
-
-      // Section (row ~22, after "Sección:")
+      // Section (look for "Sección:" label)
       const sectionVal = findCellValue(row as unknown[], "Sección:");
       if (sectionVal) {
-        section = sectionVal.trim();
+        section = sectionVal.charAt(0).toUpperCase();
       }
     }
 
@@ -127,9 +150,15 @@ export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
 
     // Find the header row (contains "Id Estudiante")
     let headerRowIdx = -1;
-    for (let i = 20; i < Math.min(30, rows.length); i++) {
+    for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      if (row && row.some((cell) => typeof cell === "string" && cell.includes("Id Estudiante"))) {
+      if (
+        row &&
+        row.some(
+          (cell) =>
+            typeof cell === "string" && cell.trim() === "Id Estudiante",
+        )
+      ) {
         headerRowIdx = i;
         break;
       }
@@ -140,22 +169,67 @@ export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
       continue;
     }
 
-    // Parse student data rows (after header)
+    // Build dynamic column map from the header row
+    const colMap = buildColMap(rows[headerRowIdx]);
+
+    if (colMap.sigerdId === undefined) {
+      errors.push(`Hoja "${sheetName}": columna "Id Estudiante" no encontrada.`);
+      continue;
+    }
+
+    // Parse student data rows
     for (let i = headerRowIdx + 1; i < rows.length; i++) {
       const row = rows[i];
-      if (!row || row.length < 5) continue;
+      if (!row || row.length === 0) continue;
 
-      // Filter out empty rows
-      const nonEmpty = row.filter((c) => c !== null && c !== undefined && c !== "");
+      // Skip rows that are clearly empty (less than 3 non-empty cells)
+      const nonEmpty = row.filter(
+        (c) => c !== null && c !== undefined && c !== "",
+      );
       if (nonEmpty.length < 3) continue;
 
-      // Columns based on SIGERD format:
-      // [0]=No.Orden, [1]=IdEstudiante, [2]=PrimerApellido, [3]=SegundoApellido, [4]=Nombres, [5]=Nacimiento, ...
-      const sigerdId = row[1] != null ? String(row[1]) : "";
-      const primerApellido = row[2] != null ? String(row[2]).trim() : "";
-      const segundoApellido = row[3] != null ? String(row[3]).trim() : "";
-      const nombres = row[4] != null ? String(row[4]).trim() : "";
-      const nacimiento = row[5];
+      const sigerdId =
+        colMap.sigerdId !== undefined && row[colMap.sigerdId] != null
+          ? String(row[colMap.sigerdId]).trim()
+          : "";
+
+      const primerApellido =
+        colMap.primerApellido !== undefined && row[colMap.primerApellido] != null
+          ? String(row[colMap.primerApellido]).trim()
+          : "";
+
+      const segundoApellido =
+        colMap.segundoApellido !== undefined &&
+        row[colMap.segundoApellido] != null
+          ? String(row[colMap.segundoApellido]).trim()
+          : "";
+
+      const nombres =
+        colMap.nombres !== undefined && row[colMap.nombres] != null
+          ? String(row[colMap.nombres]).trim()
+          : "";
+
+      const nacimiento =
+        colMap.nacimiento !== undefined ? row[colMap.nacimiento] : null;
+
+      // Grade and section from the data row take priority over sheet-level metadata
+      const rowGradeRaw =
+        colMap.grade !== undefined && row[colMap.grade] != null
+          ? String(row[colMap.grade]).trim()
+          : "";
+      const rowGrade = rowGradeRaw
+        ? normalizeGrade(rowGradeRaw) || grade
+        : grade;
+
+      const rowSection =
+        colMap.section !== undefined && row[colMap.section] != null
+          ? String(row[colMap.section]).trim().charAt(0).toUpperCase()
+          : section;
+
+      const rowStatus =
+        colMap.status !== undefined && row[colMap.status] != null
+          ? String(row[colMap.status]).trim()
+          : "Inscrito";
 
       if (!sigerdId || !primerApellido || !nombres) continue;
 
@@ -163,16 +237,12 @@ export function parseSigerdExcel(buffer: ArrayBuffer): SigerdParseResult {
         ? `${primerApellido} ${segundoApellido}`
         : primerApellido;
 
-      // Get section and status from data row if available
-      const rowSection = row[14] != null ? String(row[14]).trim() : section;
-      const rowStatus = row[16] != null ? String(row[16]).trim() : "Inscrito";
-
       students.push({
         sigerdId,
         firstName: nombres,
         lastName,
         birthDate: parseExcelDate(nacimiento),
-        grade,
+        grade: rowGrade,
         section: rowSection || section,
         status: rowStatus,
       });
